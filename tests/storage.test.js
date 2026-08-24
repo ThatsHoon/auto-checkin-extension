@@ -25,7 +25,7 @@ test('getAccounts returns defaults when empty', async () => {
   installFakeChromeStorage();
   const { getAccounts } = await import('../src/storage.js?t=' + Math.random());
   const accounts = await getAccounts();
-  assert.deepEqual(accounts, { genshin: null, starrail: null, zzz: null, endfield: null });
+  assert.deepEqual(accounts, { genshin: null, starrail: null, zzz: null, endfield: null, nikke: null });
 });
 
 test('setAccount persists and getAccounts reflects it', async () => {

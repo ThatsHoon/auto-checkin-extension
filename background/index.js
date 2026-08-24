@@ -9,6 +9,7 @@ import { fetchWithHoyoCookie, fetchWithInjectedHeaders } from '../src/http-hoyo.
 import { ensureCheckInAlarm, onCheckInAlarm } from '../src/alarm.js';
 
 const HOYO_SERVICES = { genshin, starrail, zzz };
+const HOYO_GAME_NAMES = new Set(Object.keys(HOYO_SERVICES));
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -133,7 +134,46 @@ export async function checkInAll() {
   await runGameSafely('nikke', runNikke);
 }
 
+async function registerHoyo(gameName) {
+  if (!HOYO_GAME_NAMES.has(gameName)) {
+    return { ok: false, error: `unknown game: ${gameName}` };
+  }
+  const tokens = await getHoyoTokens();
+  if (!tokens) {
+    return { ok: false, error: '로그인 쿠키 없음 — hoyolab.com에 먼저 로그인하세요' };
+  }
+  await setAccount(gameName, { ltuid: tokens.ltuid });
+  return { ok: true, ltuid: tokens.ltuid };
+}
+
+async function registerNikke() {
+  const listReq = nikke.buildTaskListRequest();
+  const listRes = await fetch(listReq.url, { method: listReq.method, headers: listReq.headers, credentials: 'include' });
+  const listJson = await listRes.json();
+
+  if (listJson.code === 300001) {
+    return { ok: false, error: '블라블라링크 로그인 필요' };
+  }
+  if (listJson.code === 303013) {
+    return { ok: false, error: 'NIKKE 계정 연동 필요' };
+  }
+  if (listJson.code !== undefined && listJson.code !== 0) {
+    return { ok: false, error: listJson.msg || `code ${listJson.code}` };
+  }
+
+  await setAccount('nikke', { linked: true });
+  return { ok: true };
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'REGISTER_HOYO') {
+    registerHoyo(message.game).then(sendResponse);
+    return true;
+  }
+  if (message.type === 'REGISTER_NIKKE') {
+    registerNikke().then(sendResponse);
+    return true;
+  }
   if (message.type === 'SKPORT_TOKEN_CAPTURED') {
     (async () => {
       const accounts = await getAccounts();

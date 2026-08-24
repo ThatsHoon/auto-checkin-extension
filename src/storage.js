@@ -2,7 +2,7 @@ const ACCOUNTS_KEY = 'accounts';
 const LOGS_KEY = 'logs';
 const MAX_LOGS = 50;
 
-const DEFAULT_ACCOUNTS = { genshin: null, starrail: null, zzz: null, endfield: null };
+const DEFAULT_ACCOUNTS = { genshin: null, starrail: null, zzz: null, endfield: null, nikke: null };
 
 export async function getAccounts() {
   const { [ACCOUNTS_KEY]: accounts } = await chrome.storage.local.get(ACCOUNTS_KEY);
