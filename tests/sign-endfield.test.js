@@ -17,7 +17,10 @@ test('buildSignature matches independent HMAC-SHA256->MD5 oracle', async () => {
     path: '/web/v1/game/endfield/attendance',
     method: 'POST',
     body: JSON.stringify({ act_id: 'e202412121212121' }),
-    timestamp: 1756123456,
+    // string, not number — the real skport contract always keeps timestamp as
+    // a string (see src/services/endfield.js); a number would silently change
+    // the signed JSON payload (unquoted vs quoted).
+    timestamp: '1756123456',
     platform: '3',
     vName: '1.0.0',
     token: 'fake-sk-token-cache-key-value',
@@ -37,8 +40,8 @@ test('buildSignature is sensitive to timestamp (no accidental caching)', async (
     vName: '1.0.0',
     token: 'token-abc',
   };
-  const sig1 = await buildSignature({ ...base, timestamp: 1000 });
-  const sig2 = await buildSignature({ ...base, timestamp: 2000 });
+  const sig1 = await buildSignature({ ...base, timestamp: '1000' });
+  const sig2 = await buildSignature({ ...base, timestamp: '2000' });
   assert.notEqual(sig1, sig2);
 });
 
@@ -54,18 +57,18 @@ test('buildSignature matches a hard-coded regression pin (not a verified golden 
     path: '/web/v1/game/endfield/attendance',
     method: 'POST',
     body: '',
-    timestamp: 1700000000,
+    timestamp: '1700000000',
     platform: '3',
     vName: '1.0.0',
     token: 'regression-pin-fixed-token',
   });
-  assert.equal(sig, '859c4434cecc85cb234acfd18d8ff115');
+  assert.equal(sig, '13725d349dfc9683cc081bb0272b0c0f');
 });
 
 test('buildSignature excludes body for non-POST methods (GET)', async () => {
   const baseParams = {
     path: '/web/v1/game/endfield/attendance',
-    timestamp: 1756123456,
+    timestamp: '1756123456',
     platform: '3',
     vName: '1.0.0',
     token: 'token-xyz',

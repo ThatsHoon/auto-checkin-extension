@@ -53,6 +53,7 @@ test('parseCheckInResponse maps codes', () => {
   assert.equal(parseCheckInResponse({ code: 0, msg: '' }).status, 'success');
   assert.equal(parseCheckInResponse({ code: 303013, msg: 'not bound' }).status, 'not_bound');
   assert.equal(parseCheckInResponse({ code: 300001, msg: 'not logged in' }).status, 'not_logged_in');
+  assert.equal(parseCheckInResponse({ code: 1001009, msg: 'system error' }).status, 'already');
   assert.equal(parseCheckInResponse({ code: 999, msg: 'weird' }).status, 'error');
 });
 

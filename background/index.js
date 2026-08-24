@@ -16,13 +16,21 @@ function delay(ms) {
 }
 
 async function runHoyoGame(gameName, service) {
-  const tokens = await getHoyoTokens();
-  if (!tokens) {
-    await appendLog({ game: gameName, timestamp: Date.now(), status: 'unregistered', message: '로그인 쿠키 없음' });
+  // Genshin/StarRail/ZZZ share the .hoyolab.com cookie domain, so reading the
+  // browser's LIVE cookie here would use whichever ONE hoyolab account happens
+  // to be currently logged in for all three games — wrong whenever the user
+  // has separate accounts per game (verified live: this caused every game but
+  // the currently-active one to fail with "-10002 No in-game character
+  // detected"). Each game must use the ltoken/ltuid SNAPSHOT captured for it
+  // specifically at registration time (see registerHoyo), not the live cookie.
+  const accounts = await getAccounts();
+  const account = accounts[gameName];
+  if (!account || !account.ltoken || !account.ltuid) {
+    await appendLog({ game: gameName, timestamp: Date.now(), status: 'unregistered', message: '계정 미등록 — 팝업에서 이 게임 계정으로 로그인 후 등록하세요' });
     return;
   }
 
-  const req = service.buildCheckInRequest(tokens);
+  const req = service.buildCheckInRequest(account);
   let json = await fetchWithHoyoCookie(req);
   let result = service.parseCheckInResponse(json);
 
@@ -169,7 +177,10 @@ async function registerHoyo(gameName) {
   if (!tokens) {
     return { ok: false, error: '로그인 쿠키 없음 — hoyolab.com에 먼저 로그인하세요' };
   }
-  await setAccount(gameName, { ltuid: tokens.ltuid });
+  // Store both ltoken and ltuid as a snapshot for THIS game specifically — see
+  // the comment in runHoyoGame for why a live cookie read can't be used at
+  // check-in time when different games use different hoyolab accounts.
+  await setAccount(gameName, { ltoken: tokens.ltoken, ltuid: tokens.ltuid });
   return { ok: true, ltuid: tokens.ltuid };
 }
 

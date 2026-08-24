@@ -32,7 +32,7 @@ function statusLabel(game, accountData) {
   if (game === 'nikke') {
     return accountData.linked ? '✓ 연동됨' : null;
   }
-  if (accountData.ltuid) {
+  if (accountData.ltoken && accountData.ltuid) {
     return `✓ UID ${maskId(accountData.ltuid)}`;
   }
   return null;

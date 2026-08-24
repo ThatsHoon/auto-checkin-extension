@@ -22,11 +22,18 @@ export async function buildCheckInRequest({ cred, token, roleId, server, lang, n
     timestamp,
   };
 
+  // timestamp MUST be the string form here, matching headers.timestamp exactly —
+  // the signed payload embeds it via JSON.stringify, and skport's reference
+  // implementation (canaria3406) always keeps it as a string. Passing a number
+  // here silently drops the JSON quotes around it, producing a different
+  // stringToSign and a signature the server rejects (verified live: this was
+  // the actual cause of every real endfield check-in failing with a generic
+  // "요청 예외" error).
   headers.sign = await buildSignature({
     path: CHECKIN_PATH,
     method: 'POST',
     body,
-    timestamp: Number(timestamp),
+    timestamp,
     platform: PLATFORM,
     vName: V_NAME,
     token,

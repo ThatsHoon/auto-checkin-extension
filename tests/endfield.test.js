@@ -23,7 +23,27 @@ test('buildCheckInRequest assembles headers with role/server and valid signature
   assert.equal(req.headers.platform, '3');
   assert.equal(req.headers.vName, '1.0.0');
 
+  // timestamp passed as a STRING here, matching req.headers.timestamp exactly —
+  // this is the actual contract buildCheckInRequest must honor (see comment in
+  // src/services/endfield.js). A number here would silently produce a
+  // different, wrong signature.
   const expectedSig = await buildSignature({
+    path: '/web/v1/game/endfield/attendance',
+    method: 'POST',
+    body: '',
+    timestamp: '1756123456',
+    platform: '3',
+    vName: '1.0.0',
+    token: 'TOKEN456',
+  });
+  assert.equal(req.headers.sign, expectedSig);
+
+  // Regression guard: passing timestamp as a Number instead of a String changes
+  // the JSON embedded in the signed payload (unquoted vs quoted), so it MUST
+  // produce a different signature. If this assertion ever fails, the string/number
+  // distinction has stopped mattering to buildSignature and the bug above could
+  // silently reappear.
+  const wrongTypeSig = await buildSignature({
     path: '/web/v1/game/endfield/attendance',
     method: 'POST',
     body: '',
@@ -32,7 +52,7 @@ test('buildCheckInRequest assembles headers with role/server and valid signature
     vName: '1.0.0',
     token: 'TOKEN456',
   });
-  assert.equal(req.headers.sign, expectedSig);
+  assert.notEqual(req.headers.sign, wrongTypeSig);
 });
 
 test('parseCheckInResponse maps codes', () => {

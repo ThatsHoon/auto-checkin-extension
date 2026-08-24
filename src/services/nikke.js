@@ -53,6 +53,10 @@ export function parseCheckInResponse(json) {
   if (code === 0) return { status: 'success', message: msg || 'OK' };
   if (code === 303013) return { status: 'not_bound', message: msg || 'NIKKE account not bound' };
   if (code === 300001) return { status: 'not_logged_in', message: msg || 'game not logged in' };
+  // blablalink's own production frontend treats this exact code as "already
+  // checked in today" (its catch handler sets is_completed=true on 1001009
+  // instead of showing an error) — confirmed by reading its live JS bundle.
+  if (code === 1001009) return { status: 'already', message: msg || 'Already checked in today' };
   return { status: 'error', message: `${code}: ${msg}` };
 }
 
