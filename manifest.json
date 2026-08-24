@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Multi-Game Auto Check-in",
+  "version": "0.1.0",
+  "description": "원신/스타레일/ZZZ/엔드필드/니케 자동 출석체크",
+  "permissions": ["storage", "cookies", "alarms", "declarativeNetRequest"],
+  "host_permissions": [
+    "*://*.hoyolab.com/*",
+    "*://*.skport.com/*",
+    "*://*.blablalink.com/*"
+  ],
+  "background": {
+    "service_worker": "background/index.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://game.skport.com/*"],
+      "js": ["content-scripts/skport-capture.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
