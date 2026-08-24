@@ -96,12 +96,20 @@ async function runNikke() {
   await appendLog({ game: 'nikke', timestamp: Date.now(), status: result.status, message: result.message });
 }
 
+async function runGameSafely(gameName, fn) {
+  try {
+    await fn();
+  } catch (error) {
+    await appendLog({ game: gameName, timestamp: Date.now(), status: 'error', message: error.message || String(error) });
+  }
+}
+
 export async function checkInAll() {
   for (const [gameName, service] of Object.entries(HOYO_SERVICES)) {
-    await runHoyoGame(gameName, service);
+    await runGameSafely(gameName, () => runHoyoGame(gameName, service));
   }
-  await runEndfield();
-  await runNikke();
+  await runGameSafely('endfield', runEndfield);
+  await runGameSafely('nikke', runNikke);
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -115,11 +123,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message.type === 'RUN_CHECKIN_NOW') {
-    checkInAll().then(() => sendResponse({ ok: true }));
+    checkInAll()
+      .then(() => sendResponse({ ok: true }))
+      .catch((error) => sendResponse({ ok: false, error: error.message || String(error) }));
     return true;
   }
 });
 
+chrome.runtime.onStartup.addListener(checkInAll);
+chrome.runtime.onInstalled.addListener(checkInAll);
+
 ensureCheckInAlarm();
 onCheckInAlarm(checkInAll);
-checkInAll();
