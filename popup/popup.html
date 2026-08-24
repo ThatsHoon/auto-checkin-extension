@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <h1>자동 출석체크</h1>
+
+  <section id="endfield-form">
+    <h2>엔드필드 역할 등록</h2>
+    <input id="ef-role-id" placeholder="Role ID" />
+    <select id="ef-server">
+      <option value="2">Asia</option>
+      <option value="3">Americas/Europe</option>
+    </select>
+    <button id="ef-save">저장</button>
+  </section>
+
+  <button id="run-now">지금 체크인 실행</button>
+
+  <ul id="logs"></ul>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
