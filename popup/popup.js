@@ -1,5 +1,5 @@
 // popup/popup.js
-import { getAccounts, setAccount, getLogs } from '../src/storage.js';
+import { getAccounts, setAccount, getLogs, clearLogs } from '../src/storage.js';
 
 const GAMES = [
   { key: 'genshin', label: '원신' },
@@ -46,9 +46,13 @@ async function renderGameList() {
   for (const { key, label } of GAMES) {
     const li = document.createElement('li');
 
-    const icon = document.createElement('div');
+    const icon = document.createElement('button');
+    icon.type = 'button';
     icon.className = 'game-icon';
     icon.textContent = label[0];
+    icon.title = '체크인 페이지 열기';
+    icon.dataset.action = 'goto';
+    icon.dataset.game = key;
     li.appendChild(icon);
 
     const info = document.createElement('div');
@@ -81,14 +85,6 @@ async function renderGameList() {
       registerLink.dataset.action = 'register';
       registerLink.dataset.game = key;
       statusEl.appendChild(registerLink);
-
-      const gotoLink = document.createElement('a');
-      gotoLink.href = '#';
-      gotoLink.textContent = '이동';
-      gotoLink.dataset.action = 'goto';
-      gotoLink.dataset.game = key;
-      statusEl.appendChild(document.createTextNode(' '));
-      statusEl.appendChild(gotoLink);
     }
     info.appendChild(statusEl);
 
@@ -127,7 +123,7 @@ async function loadEndfieldForm() {
 }
 
 document.getElementById('game-list').addEventListener('click', async (event) => {
-  const link = event.target.closest('a[data-action]');
+  const link = event.target.closest('[data-action]');
   if (!link) return;
   event.preventDefault();
   const { action, game } = link.dataset;
@@ -177,6 +173,11 @@ document.getElementById('ef-save').addEventListener('click', async () => {
 
 document.getElementById('ef-cancel').addEventListener('click', () => {
   hideEndfieldForm();
+});
+
+document.getElementById('clear-logs').addEventListener('click', async () => {
+  await clearLogs();
+  await renderLogs();
 });
 
 document.getElementById('run-now').addEventListener('click', async () => {

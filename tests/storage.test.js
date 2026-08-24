@@ -47,3 +47,12 @@ test('appendLog caps at 50 entries, newest first', async () => {
   assert.equal(logs[0].message, 'n54');
   assert.equal(logs[49].message, 'n5');
 });
+
+test('clearLogs empties the log list', async () => {
+  installFakeChromeStorage();
+  const { appendLog, clearLogs, getLogs } = await import('../src/storage.js?t=' + Math.random());
+  await appendLog({ game: 'genshin', timestamp: 1, status: 'success', message: 'x' });
+  await clearLogs();
+  const logs = await getLogs();
+  assert.deepEqual(logs, []);
+});

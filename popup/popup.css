@@ -36,11 +36,20 @@ h2 {
   height: 32px;
   border-radius: 50%;
   background: #333;
+  color: inherit;
+  border: none;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   flex-shrink: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.game-icon:hover {
+  background: #444;
 }
 
 .game-info {
@@ -87,6 +96,22 @@ h2 {
 #run-now {
   margin-top: 12px;
   width: 100%;
+}
+
+.logs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.logs-header h2 {
+  margin: 0;
+}
+
+.logs-header button {
+  font-size: 11px;
+  padding: 2px 8px;
 }
 
 #logs {

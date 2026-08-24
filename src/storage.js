@@ -25,3 +25,7 @@ export async function appendLog(entry) {
   logs.unshift(entry);
   await chrome.storage.local.set({ [LOGS_KEY]: logs.slice(0, MAX_LOGS) });
 }
+
+export async function clearLogs() {
+  await chrome.storage.local.set({ [LOGS_KEY]: [] });
+}

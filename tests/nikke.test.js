@@ -5,6 +5,9 @@ import {
   parseTaskListResponse,
   buildCheckInRequest,
   parseCheckInResponse,
+  buildCollectionStatusRequest,
+  parseCollectionStatusResponse,
+  buildCollectionClaimRequest,
 } from '../src/services/nikke.js';
 
 test('buildTaskListRequest targets GetTaskListWithStatusV2 with intl_game_id=29080', () => {
@@ -51,4 +54,25 @@ test('parseCheckInResponse maps codes', () => {
   assert.equal(parseCheckInResponse({ code: 303013, msg: 'not bound' }).status, 'not_bound');
   assert.equal(parseCheckInResponse({ code: 300001, msg: 'not logged in' }).status, 'not_logged_in');
   assert.equal(parseCheckInResponse({ code: 999, msg: 'weird' }).status, 'error');
+});
+
+test('buildCollectionStatusRequest queries GetUserCollection by task_id', () => {
+  const req = buildCollectionStatusRequest('t-daily');
+  assert.equal(
+    req.url,
+    'https://api.blablalink.com/api/lip/proxy/lipass/Points/GetUserCollection?task_id=t-daily',
+  );
+  assert.equal(req.method, 'GET');
+});
+
+test('parseCollectionStatusResponse maps CollectionStatus.complete (1) to complete:true', () => {
+  assert.equal(parseCollectionStatusResponse({ status: 1 }).complete, true);
+  assert.equal(parseCollectionStatusResponse({ status: 0 }).complete, false);
+});
+
+test('buildCollectionClaimRequest posts task_id to UserCompleteCollection', () => {
+  const req = buildCollectionClaimRequest('t-daily');
+  assert.equal(req.url, 'https://api.blablalink.com/api/lip/proxy/lipass/Points/UserCompleteCollection');
+  assert.equal(req.method, 'POST');
+  assert.deepEqual(JSON.parse(req.body), { task_id: 't-daily' });
 });

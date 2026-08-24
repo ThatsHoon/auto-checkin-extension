@@ -96,20 +96,47 @@ async function runNikke() {
     await appendLog({ game: 'nikke', timestamp: Date.now(), status: 'error', message: '출석 태스크를 찾지 못함' });
     return;
   }
+
+  let result;
   if (alreadyCompleted) {
-    await appendLog({ game: 'nikke', timestamp: Date.now(), status: 'already', message: '이미 출석 완료' });
-    return;
+    result = { status: 'already', message: '이미 출석 완료' };
+  } else {
+    const checkinReq = nikke.buildCheckInRequest(taskId);
+    const checkinRes = await fetch(checkinReq.url, {
+      method: checkinReq.method,
+      headers: checkinReq.headers,
+      body: checkinReq.body,
+      credentials: 'include',
+    });
+    const checkinJson = await checkinRes.json();
+    result = nikke.parseCheckInResponse(checkinJson);
   }
 
-  const checkinReq = nikke.buildCheckInRequest(taskId);
-  const checkinRes = await fetch(checkinReq.url, {
-    method: checkinReq.method,
-    headers: checkinReq.headers,
-    body: checkinReq.body,
-    credentials: 'include',
-  });
-  const checkinJson = await checkinRes.json();
-  const result = nikke.parseCheckInResponse(checkinJson);
+  // Marking attendance and receiving the reward item are two separate steps on
+  // blablalink — always follow up with the collection claim, whether check-in
+  // just succeeded or was already done today, so an interrupted prior run
+  // (attendance marked, reward never collected) still gets fixed.
+  if (result.status === 'success' || result.status === 'already') {
+    const statusReq = nikke.buildCollectionStatusRequest(taskId);
+    const statusRes = await fetch(statusReq.url, { method: statusReq.method, headers: statusReq.headers, credentials: 'include' });
+    const statusJson = await statusRes.json();
+    const statusData = statusJson.data || statusJson;
+
+    if (statusJson.code !== undefined && statusJson.code !== 0) {
+      result = { ...result, message: `${result.message} (보상 확인 실패: ${statusJson.msg || statusJson.code})` };
+    } else if (nikke.parseCollectionStatusResponse(statusData).complete) {
+      const claimReq = nikke.buildCollectionClaimRequest(taskId);
+      const claimRes = await fetch(claimReq.url, {
+        method: claimReq.method,
+        headers: claimReq.headers,
+        body: claimReq.body,
+        credentials: 'include',
+      });
+      const claimJson = await claimRes.json();
+      const claimSuffix = claimJson.code === 0 ? '보상 수령 완료' : `보상 수령 실패: ${claimJson.msg || claimJson.code}`;
+      result = { ...result, message: `${result.message} (${claimSuffix})` };
+    }
+  }
 
   await appendLog({ game: 'nikke', timestamp: Date.now(), status: result.status, message: result.message });
 }

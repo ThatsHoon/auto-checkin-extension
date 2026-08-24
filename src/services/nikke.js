@@ -1,7 +1,10 @@
 const BASE = 'https://api.blablalink.com/api';
 const TASK_LIST_URL = `${BASE}/lip/proxy/lipass/Points/GetTaskListWithStatusV2?get_top=true&intl_game_id=29080`;
 const CHECKIN_URL = `${BASE}/lip/proxy/lipass/Points/DailyCheckIn`;
+const COLLECTION_STATUS_URL = `${BASE}/lip/proxy/lipass/Points/GetUserCollection`;
+const COLLECTION_CLAIM_URL = `${BASE}/lip/proxy/lipass/Points/UserCompleteCollection`;
 const DAILY_CHECK_IN_TASK_TYPE = 1;
+const COLLECTION_STATUS_COMPLETE = 1;
 
 function commonParams() {
   return JSON.stringify({
@@ -51,4 +54,31 @@ export function parseCheckInResponse(json) {
   if (code === 303013) return { status: 'not_bound', message: msg || 'NIKKE account not bound' };
   if (code === 300001) return { status: 'not_logged_in', message: msg || 'game not logged in' };
   return { status: 'error', message: `${code}: ${msg}` };
+}
+
+// The DailyCheckIn call only marks the day as attended — the actual reward item
+// is granted through a separate "collection" claim step (verified from the live
+// blablalink.com bundle: every successful check-in is followed by a
+// GetUserCollection status check, and if complete, a UserCompleteCollection call).
+// Without this second step the check-in shows as done but the reward is never
+// actually received.
+export function buildCollectionStatusRequest(taskId) {
+  return {
+    url: `${COLLECTION_STATUS_URL}?task_id=${encodeURIComponent(taskId)}`,
+    method: 'GET',
+    headers: commonHeaders(),
+  };
+}
+
+export function parseCollectionStatusResponse(json) {
+  return { complete: json.status === COLLECTION_STATUS_COMPLETE };
+}
+
+export function buildCollectionClaimRequest(taskId) {
+  return {
+    url: COLLECTION_CLAIM_URL,
+    method: 'POST',
+    headers: { ...commonHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ task_id: taskId }),
+  };
 }
