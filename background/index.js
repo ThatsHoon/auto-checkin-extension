@@ -100,7 +100,11 @@ async function runGameSafely(gameName, fn) {
   try {
     await fn();
   } catch (error) {
-    await appendLog({ game: gameName, timestamp: Date.now(), status: 'error', message: error.message || String(error) });
+    try {
+      await appendLog({ game: gameName, timestamp: Date.now(), status: 'error', message: error.message || String(error) });
+    } catch (logError) {
+      console.error(`[runGameSafely] failed to log error for ${gameName}:`, logError);
+    }
   }
 }
 
