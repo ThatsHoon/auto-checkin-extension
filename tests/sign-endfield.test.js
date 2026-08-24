@@ -42,6 +42,26 @@ test('buildSignature is sensitive to timestamp (no accidental caching)', async (
   assert.notEqual(sig1, sig2);
 });
 
+// Regression pin, NOT a golden vector: this hard-coded expected value was produced
+// by running buildSignature() with the inputs below and pasting the literal result.
+// It is NOT an independently-sourced real skport request/response pair — no such
+// verified vector exists for this unofficial API (the reference implementation,
+// canaria3406/skport-auto-sign, ships no example input/output pairs). This test only
+// catches an accidental future change to the signing algorithm; it cannot prove the
+// stringToSign format matches what the real skport server actually expects.
+test('buildSignature matches a hard-coded regression pin (not a verified golden vector)', async () => {
+  const sig = await buildSignature({
+    path: '/web/v1/game/endfield/attendance',
+    method: 'POST',
+    body: '',
+    timestamp: 1700000000,
+    platform: '3',
+    vName: '1.0.0',
+    token: 'regression-pin-fixed-token',
+  });
+  assert.equal(sig, '859c4434cecc85cb234acfd18d8ff115');
+});
+
 test('buildSignature excludes body for non-POST methods (GET)', async () => {
   const baseParams = {
     path: '/web/v1/game/endfield/attendance',

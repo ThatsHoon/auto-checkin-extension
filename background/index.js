@@ -5,7 +5,7 @@ import * as endfield from '../src/services/endfield.js';
 import * as nikke from '../src/services/nikke.js';
 import { getAccounts, setAccount, appendLog } from '../src/storage.js';
 import { getHoyoTokens, getSkportCred } from '../src/cookies.js';
-import { fetchWithHoyoCookie } from '../src/http-hoyo.js';
+import { fetchWithHoyoCookie, fetchWithInjectedHeaders } from '../src/http-hoyo.js';
 import { ensureCheckInAlarm, onCheckInAlarm } from '../src/alarm.js';
 
 const HOYO_SERVICES = { genshin, starrail, zzz };
@@ -56,7 +56,16 @@ async function runEndfield() {
     lang: 'ko',
   });
 
-  const res = await fetch(req.url, { method: req.method, headers: req.headers, body: req.body || undefined });
+  // Origin/Referer are Fetch-spec forbidden request headers — a plain fetch() call
+  // silently drops them, so they must be injected via declarativeNetRequest instead.
+  const res = await fetchWithInjectedHeaders(
+    req.url,
+    { method: req.method, headers: req.headers, body: req.body || undefined },
+    [
+      { header: 'Origin', value: req.headers.Origin },
+      { header: 'Referer', value: req.headers.Referer },
+    ],
+  );
   const json = await res.json();
   const result = endfield.parseCheckInResponse(json);
 
@@ -70,6 +79,14 @@ async function runNikke() {
 
   if (listJson.code === 300001) {
     await appendLog({ game: 'nikke', timestamp: Date.now(), status: 'not_logged_in', message: '블라블라링크 로그인 필요' });
+    return;
+  }
+  if (listJson.code === 303013) {
+    await appendLog({ game: 'nikke', timestamp: Date.now(), status: 'not_bound', message: 'NIKKE account not bound' });
+    return;
+  }
+  if (listJson.code !== undefined && listJson.code !== 0) {
+    await appendLog({ game: 'nikke', timestamp: Date.now(), status: 'error', message: listJson.msg || `code ${listJson.code}` });
     return;
   }
 
