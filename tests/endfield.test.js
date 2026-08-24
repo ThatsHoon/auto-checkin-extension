@@ -38,5 +38,19 @@ test('buildCheckInRequest assembles headers with role/server and valid signature
 test('parseCheckInResponse maps codes', () => {
   assert.equal(parseCheckInResponse({ code: 0, message: 'OK' }).status, 'success');
   assert.equal(parseCheckInResponse({ code: 10000, message: 'token expired' }).status, 'expired');
-  assert.equal(parseCheckInResponse({ code: 1, message: 'Already signed' }).status, 'already');
+  assert.equal(parseCheckInResponse({ code: 1, message: 'Already signed' }).status, 'error');
+});
+
+test('buildCheckInRequest default now uses unix seconds not milliseconds', async () => {
+  const req = await buildCheckInRequest({
+    cred: 'CRED123',
+    token: 'TOKEN456',
+    roleId: 'RID789',
+    server: '2',
+    lang: 'ko',
+  });
+
+  const timestamp = Number(req.headers.timestamp);
+  assert(timestamp < 99999999999, 'timestamp should be 10-digit unix seconds, not 13-digit milliseconds');
+  assert.equal(String(timestamp).length, 10, 'timestamp should be 10 digits');
 });

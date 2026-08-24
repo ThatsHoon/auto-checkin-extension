@@ -5,7 +5,7 @@ const CHECKIN_URL = `https://zonai.skport.com${CHECKIN_PATH}`;
 const PLATFORM = '3';
 const V_NAME = '1.0.0';
 
-export async function buildCheckInRequest({ cred, token, roleId, server, lang, now = Date.now }) {
+export async function buildCheckInRequest({ cred, token, roleId, server, lang, now = () => Math.floor(Date.now() / 1000) }) {
   const timestamp = String(now());
   const body = '';
 
@@ -40,5 +40,5 @@ export function parseCheckInResponse(json) {
   if (code === 10000) return { status: 'expired', message: message || 'token expired' };
   if (code === 0) return { status: 'success', message: message || 'OK' };
   if (message === 'OK') return { status: 'success', message };
-  return { status: 'already', message: message || `code ${code}` };
+  return { status: 'error', message: message || `code ${code}` };
 }
