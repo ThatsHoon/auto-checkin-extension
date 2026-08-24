@@ -16,7 +16,7 @@ async function hmacSha256Hex(message, key) {
 }
 
 export async function buildSignature({ path, method, body, timestamp, platform, vName, token }) {
-  let stringToSign = path + (method === 'GET' ? '' : body || '');
+  let stringToSign = path + (method === 'POST' ? (body || '') : '');
   stringToSign += String(timestamp);
   stringToSign += JSON.stringify({ platform, timestamp, dId: '', vName });
 
