@@ -58,9 +58,13 @@ h2 {
   color: #9be29b;
 }
 
-.game-status.unregistered a {
+.game-status a {
   color: #6cb4ff;
   text-decoration: none;
+}
+
+.game-status a[data-action='unregister'] {
+  color: #d98c8c;
 }
 
 .hidden {

@@ -9,6 +9,14 @@ const GAMES = [
   { key: 'nikke', label: '니케' },
 ];
 
+const CHECKIN_URLS = {
+  genshin: 'https://act.hoyolab.com/ys/event/signin-sea-v3/index.html',
+  starrail: 'https://act.hoyolab.com/bbs/event/signin/hkrpg/index.html?act_id=e202303301540311',
+  zzz: 'https://act.hoyolab.com/bbs/event/signin/zzz/e202406031448091.html?act_id=e202406031448091',
+  endfield: 'https://game.skport.com/endfield/sign-in?header=0&hg_media=skport&hg_link_campaign=tools',
+  nikke: 'https://www.blablalink.com/points',
+};
+
 function maskId(id) {
   const str = String(id);
   if (str.length <= 4) return str;
@@ -56,13 +64,31 @@ async function renderGameList() {
     if (label2) {
       statusEl.className = 'game-status';
       statusEl.textContent = label2;
+
+      const unregisterLink = document.createElement('a');
+      unregisterLink.href = '#';
+      unregisterLink.textContent = '등록해제';
+      unregisterLink.dataset.action = 'unregister';
+      unregisterLink.dataset.game = key;
+      statusEl.appendChild(document.createTextNode(' '));
+      statusEl.appendChild(unregisterLink);
     } else {
       statusEl.className = 'game-status unregistered';
-      const link = document.createElement('a');
-      link.href = '#';
-      link.textContent = '계정 등록하기';
-      link.dataset.game = key;
-      statusEl.appendChild(link);
+
+      const registerLink = document.createElement('a');
+      registerLink.href = '#';
+      registerLink.textContent = '계정 등록하기';
+      registerLink.dataset.action = 'register';
+      registerLink.dataset.game = key;
+      statusEl.appendChild(registerLink);
+
+      const gotoLink = document.createElement('a');
+      gotoLink.href = '#';
+      gotoLink.textContent = '이동';
+      gotoLink.dataset.action = 'goto';
+      gotoLink.dataset.game = key;
+      statusEl.appendChild(document.createTextNode(' '));
+      statusEl.appendChild(gotoLink);
     }
     info.appendChild(statusEl);
 
@@ -101,11 +127,27 @@ async function loadEndfieldForm() {
 }
 
 document.getElementById('game-list').addEventListener('click', async (event) => {
-  const link = event.target.closest('a[data-game]');
+  const link = event.target.closest('a[data-action]');
   if (!link) return;
   event.preventDefault();
-  const game = link.dataset.game;
+  const { action, game } = link.dataset;
 
+  if (action === 'goto') {
+    chrome.tabs.create({ url: CHECKIN_URLS[game] });
+    return;
+  }
+
+  if (action === 'unregister') {
+    await setAccount(game, null);
+    if (game === 'endfield') {
+      document.getElementById('ef-role-id').value = '';
+      document.getElementById('ef-server').value = '2';
+    }
+    await renderGameList();
+    return;
+  }
+
+  // action === 'register'
   if (game === 'endfield') {
     showEndfieldForm();
     return;
