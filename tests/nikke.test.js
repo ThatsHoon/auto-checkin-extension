@@ -11,7 +11,7 @@ test('buildTaskListRequest targets GetTaskListWithStatusV2 with intl_game_id=290
   const req = buildTaskListRequest();
   assert.equal(
     req.url,
-    'https://api.blablalink.com/lip/proxy/lipass/Points/GetTaskListWithStatusV2?get_top=true&intl_game_id=29080',
+    'https://api.blablalink.com/api/lip/proxy/lipass/Points/GetTaskListWithStatusV2?get_top=true&intl_game_id=29080',
   );
   assert.equal(req.method, 'GET');
   const params = JSON.parse(req.headers['x-common-params']);
@@ -41,7 +41,7 @@ test('parseTaskListResponse finds DailyCheckIn task and completion state', () =>
 
 test('buildCheckInRequest posts task_id to DailyCheckIn endpoint', () => {
   const req = buildCheckInRequest('t-daily');
-  assert.equal(req.url, 'https://api.blablalink.com/lip/proxy/lipass/Points/DailyCheckIn');
+  assert.equal(req.url, 'https://api.blablalink.com/api/lip/proxy/lipass/Points/DailyCheckIn');
   assert.equal(req.method, 'POST');
   assert.deepEqual(JSON.parse(req.body), { task_id: 't-daily' });
 });

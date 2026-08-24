@@ -1,4 +1,4 @@
-const BASE = 'https://api.blablalink.com';
+const BASE = 'https://api.blablalink.com/api';
 const TASK_LIST_URL = `${BASE}/lip/proxy/lipass/Points/GetTaskListWithStatusV2?get_top=true&intl_game_id=29080`;
 const CHECKIN_URL = `${BASE}/lip/proxy/lipass/Points/DailyCheckIn`;
 const DAILY_CHECK_IN_TASK_TYPE = 1;
