@@ -167,11 +167,15 @@ async function registerNikke() {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'REGISTER_HOYO') {
-    registerHoyo(message.game).then(sendResponse);
+    registerHoyo(message.game)
+      .then(sendResponse)
+      .catch((error) => sendResponse({ ok: false, error: error.message || String(error) }));
     return true;
   }
   if (message.type === 'REGISTER_NIKKE') {
-    registerNikke().then(sendResponse);
+    registerNikke()
+      .then(sendResponse)
+      .catch((error) => sendResponse({ ok: false, error: error.message || String(error) }));
     return true;
   }
   if (message.type === 'SKPORT_TOKEN_CAPTURED') {
