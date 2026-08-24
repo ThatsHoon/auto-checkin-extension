@@ -38,7 +38,8 @@ test('buildCheckInRequest assembles headers with role/server and valid signature
 test('parseCheckInResponse maps codes', () => {
   assert.equal(parseCheckInResponse({ code: 0, message: 'OK' }).status, 'success');
   assert.equal(parseCheckInResponse({ code: 10000, message: 'token expired' }).status, 'expired');
-  assert.equal(parseCheckInResponse({ code: 1, message: 'Already signed' }).status, 'error');
+  assert.equal(parseCheckInResponse({ code: 1, message: 'Already signed' }).status, 'already');
+  assert.equal(parseCheckInResponse({ code: 999, message: 'Unknown error' }).status, 'error');
 });
 
 test('buildCheckInRequest default now uses unix seconds not milliseconds', async () => {

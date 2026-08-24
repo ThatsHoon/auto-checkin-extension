@@ -40,5 +40,6 @@ export function parseCheckInResponse(json) {
   if (code === 10000) return { status: 'expired', message: message || 'token expired' };
   if (code === 0) return { status: 'success', message: message || 'OK' };
   if (message === 'OK') return { status: 'success', message };
+  if (code === 1) return { status: 'already', message: message || 'Already signed' };
   return { status: 'error', message: message || `code ${code}` };
 }
